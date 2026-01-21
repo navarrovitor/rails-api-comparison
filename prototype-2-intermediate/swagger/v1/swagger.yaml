@@ -1,0 +1,80 @@
+---
+openapi: 3.0.1
+info:
+  title: Rails API Comparison - Prototype 2
+  version: v1
+paths:
+  "/api/v1/articles":
+    get:
+      summary: List articles
+      tags:
+      - Articles
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: articles listed
+        '401':
+          description: unauthorized
+    post:
+      summary: Create article
+      tags:
+      - Articles
+      security:
+      - bearerAuth: []
+      parameters: []
+      responses:
+        '201':
+          description: article created
+        '401':
+          description: unauthorized
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+              required:
+              - title
+              - content
+  "/api/v1/login":
+    post:
+      summary: User login
+      tags:
+      - Authentication
+      parameters: []
+      responses:
+        '200':
+          description: token generated
+        '401':
+          description: invalid credentials
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+              - email
+              - password
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultHost:
+      default: www.example.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+- bearerAuth: []
