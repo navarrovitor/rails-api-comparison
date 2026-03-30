@@ -41,6 +41,46 @@ paths:
               required:
               - title
               - content
+  "/api/v1/articles/{id}":
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    put:
+      summary: Update article
+      tags:
+      - Articles
+      security:
+      - bearerAuth: []
+      parameters: []
+      responses:
+        '200':
+          description: article updated
+        '401':
+          description: unauthorized
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+    delete:
+      summary: Delete article
+      tags:
+      - Articles
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: article deleted
+        '401':
+          description: unauthorized
   "/api/v1/login":
     post:
       summary: User login

@@ -1,0 +1,45 @@
+# PostgreSQL. Versions 9.3 and up are supported.
+#
+# Install the pg driver:
+#   gem install pg
+# On macOS with Homebrew:
+#   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
+# On Windows:
+#   gem install pg
+#       Choose the win32 build.
+#       Install PostgreSQL and put its /bin directory on your path.
+#
+# Configure Using Gemfile
+# gem "pg"
+#
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  # For details on connection pooling, see Rails configuration guide
+  # https://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+
+development:
+  <<: *default
+  database: prototype3_development
+  url: <%= ENV["DATABASE_URL"] %>
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  <<: *default
+  database: prototype3_test
+  url: <%= ENV["DATABASE_URL"] %>
+
+# If DATABASE_URL is provided it takes precedence over the values here.
+#
+#   DATABASE_URL="postgres://myuser:mypass@localhost/somedatabase"
+#
+production:
+  <<: *default
+  database: prototype3_production
+  username: prototype3
+  password: <%= ENV["PROTOTYPE3_DATABASE_PASSWORD"] %>
+  url: <%= ENV["DATABASE_URL"] %>

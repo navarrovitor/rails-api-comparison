@@ -1,0 +1,87 @@
+name: Prototype 3 CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # Only run when changes touch prototype-3-advanced
+    if: |
+      github.event_name == 'push' &&
+      contains(toJSON(github.event.commits.*.modified + github.event.commits.*.added), 'prototype-3-advanced/')
+      || github.event_name == 'pull_request'
+
+    defaults:
+      run:
+        working-directory: prototype-3-advanced
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: prototype3_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/prototype3_test
+      REDIS_URL: redis://localhost:6379/0
+      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby 3.3.5
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.5"
+          bundler-cache: true
+          working-directory: prototype-3-advanced
+
+      - name: Set up database
+        run: bundle exec rails db:create db:migrate
+
+      - name: Generate Swagger docs
+        run: bundle exec rake rswag:specs:swaggerize
+
+      - name: Run RSpec
+        run: bundle exec rspec --format progress --format json --out tmp/rspec_results.json
+
+      - name: Report test coverage summary
+        if: always()
+        run: |
+          if [ -f tmp/rspec_results.json ]; then
+            ruby -e "
+              require 'json'
+              results = JSON.parse(File.read('tmp/rspec_results.json'))
+              summary = results['summary']
+              puts '### RSpec Results'
+              puts \"- Examples: #{summary['example_count']}\"
+              puts \"- Failures: #{summary['failure_count']}\"
+              puts \"- Pending:  #{summary['pending_count']}\"
+              puts \"- Duration: #{summary['duration'].round(2)}s\"
+            " >> \$GITHUB_STEP_SUMMARY
+          fi
