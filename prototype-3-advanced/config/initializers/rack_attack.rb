@@ -1,6 +1,11 @@
 # Use the app's configured cache store (Redis in production/development, memory in test)
 Rack::Attack.cache.store = Rails.cache
 
+# Safelist localhost for load testing (JMeter runs from 127.0.0.1)
+Rack::Attack.safelist("allow localhost") do |req|
+  req.ip == "127.0.0.1" || req.ip == "::1"
+end
+
 # Rule 1 — General limit per IP: 300 requests per 5 minutes
 Rack::Attack.throttle("req/ip", limit: 300, period: 5.minutes) do |req|
   req.ip
